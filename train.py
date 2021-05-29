@@ -9,17 +9,17 @@ from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 from azureml.core.run import Run
 from azureml.data.dataset_factory import TabularDatasetFactory
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
 
 # TODO: Create TabularDataset using TabularDatasetFactory
 # Data is located at:
-# "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv"
+datasetEndpoint =  "https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv"
+print(datasetEndpoint)
+ds = TabularDatasetFactory.from_delimited_files(datasetEndpoint)
 
-ds = ### YOUR CODE HERE ###
-
-x, y = clean_data(ds)
 
 # TODO: Split data into train and test sets.
-
 ### YOUR CODE HERE ###a
 
 run = Run.get_context()
@@ -49,7 +49,9 @@ def clean_data(data):
     x_df["poutcome"] = x_df.poutcome.apply(lambda s: 1 if s == "success" else 0)
 
     y_df = x_df.pop("y").apply(lambda s: 1 if s == "yes" else 0)
-    
+    return x_df, y_df
+
+
 
 def main():
     # Add arguments to script
@@ -62,7 +64,9 @@ def main():
 
     run.log("Regularization Strength:", np.float(args.C))
     run.log("Max iterations:", np.int(args.max_iter))
+    x, y = clean_data(ds)
 
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.33)
     model = LogisticRegression(C=args.C, max_iter=args.max_iter).fit(x_train, y_train)
 
     accuracy = model.score(x_test, y_test)
